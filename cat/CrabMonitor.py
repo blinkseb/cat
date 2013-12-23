@@ -2,7 +2,7 @@ import re
 import subprocess
 import tempfile
 import time
-import Utils, JobManager, Email
+import Utils, JobManager, Email, Config
 
 from time import strftime, localtime
 from threading import Thread, Event
@@ -22,10 +22,12 @@ class CrabMonitor(Thread):
 
     def run(self):
         interrupted = False
-        corrupted_job_regex = re.compile("Output files for job (\d) seems corrupted")
+        corrupted_job_regex = re.compile("Output files for job (\d+) seems corrupted")
+        email = Config.get().get()["email"]
+
         while True:
             if not Utils.is_proxy_valid():
-                Email.sendProxy("s.brochet@ipnl.in2p3.fr", self.folder)
+                Email.sendProxy(email, self.folder)
                 Utils.delegate_proxy(self.verbose)
 
             self.status()
@@ -84,17 +86,17 @@ class CrabMonitor(Thread):
                     (output, returncode) = Utils.runCrab("get", ",".join(get_id), self.folder)
 
                     # Detect corrupted jobs
-                    lines = output.split("\n")
+                    lines = output
                     for line in lines:
                         matches = re.search(corrupted_job_regex, line)
                         if matches is not None:
-                            corrupted_id.append(int(matches.group(1)))
+                            corrupted_id.append(str(matches.group(1)))
 
                 if len(corrupted_id) > 0:
                     if self.verbose:
                         print("Some jobs are corrupted: " + ",".join(corrupted_id))
-                    kill_id.append(corrupted_id)
-                    sort(kill_id)
+                    kill_id.extend(corrupted_id)
+                    kill_id.sort()
                     # Don't add job ids into resubmit_id because they are already inside
 
                 if len(kill_id) > 0:
@@ -110,7 +112,7 @@ class CrabMonitor(Thread):
                 print("\nAll actions done")
                 print("")
 
-            Email.sendReport("s.brochet@ipnl.in2p3.fr", self.folder, get_id, kill_id, resubmit_id, corrupted_id, self.jobs)
+            Email.sendReport(email, self.folder, get_id, kill_id, resubmit_id, corrupted_id, self.jobs)
 
             if len(resubmit_id) == 0 and n_running == 0 and n_waiting == 0:
                 break
@@ -128,7 +130,7 @@ class CrabMonitor(Thread):
             print("")
 
         if not interrupted:
-            Email.sendComplete("s.brochet@ipnl.in2p3.fr", self.folder, self.jobs)
+            Email.sendComplete(email, self.folder, self.jobs)
 
     def status(self):
         """Execute crab -status on the specified folder"""
@@ -136,18 +138,14 @@ class CrabMonitor(Thread):
         if self.verbose:
             print("Executing crab -status on folder '%s'" % self.folder)
 
-        tmp = tempfile.NamedTemporaryFile(dir = "/tmp")
-        cmdline = "crab -status -c %s > %s" % (self.folder, tmp.name)
+        cmdline = "crab -status -c %s" % (self.folder)
+        (output, returncode) = Utils.runCommand(cmdline)
 
-        p = subprocess.Popen(cmdline, shell = True)
+        if returncode != 0:
+            raise IOError("Unable to get status from crab. Output is:\n%s" % "\n".join(output))
 
-        p.communicate()
-        if p.returncode != 0:
-            raise IOError("Unable to get status from crab")
+        self.crab_status = output
 
-        self.crab_status = tmp.readlines()
-
-        tmp.close()
         #self.crab_status = """crab:  Version 2.10.2 running on Sun Dec 22 12:44:52 2013 CET (11:44:52 UTC)
 
 #crab. Working options:

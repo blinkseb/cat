@@ -1,7 +1,7 @@
 import os
 import signal
 import time
-import CrabMonitor, Utils
+import CrabMonitor, Utils, Config
 
 from optparse import OptionParser
 
@@ -26,6 +26,16 @@ class Cat:
         self.monitor = None
         # Register SIGINT handler
         signal.signal(signal.SIGINT, self.signal_handler)
+
+        # Check for configuration file in ~/.cat
+        configFile = os.path.expanduser("~/.cat")
+
+        if not os.path.isfile(configFile):
+            raise IOError("CAT configuration not found. Please create '%s'" % configFile)
+
+        config = {}
+        execfile(configFile, config)
+        Config.get().set(config)
 
     def run(self):
         # Delegate a new proxy
