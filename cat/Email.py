@@ -14,7 +14,7 @@ def send(to, msg):
     s.quit()
 
 MAIL_REGEX = re.compile("(.{76})", re.DOTALL)
-def sendReport(to, folder, get_ids, kill_ids, resubmit_ids, force_resubmit_ids, corrupted_ids, jobs):
+def sendReport(to, folder, get_ids, kill_ids, resubmit_ids, force_resubmit_ids, corrupted_ids, log, jobs):
     template = Template("""CAT has finish its duty. Here's a summary of the actions taken:
 
     $n_get jobs got: $get_id
@@ -26,6 +26,9 @@ def sendReport(to, folder, get_ids, kill_ids, resubmit_ids, force_resubmit_ids, 
 $n_running jobs are still running, while $n_submitted are waiting.
 
 Total of jobs in this task: $n_jobs
+
+Log of operations:
+$log
 
 --
 CAT currently running on $host""")
@@ -45,6 +48,8 @@ CAT currently running on $host""")
 
     args["n_corrupted"] = len(corrupted_ids)
     args["corrupted_id"] = ",".join(corrupted_ids)
+
+    args["log"] = log if len(log) > 0 else "dry-run mode"
 
     n_running = 0
     n_waiting = 0

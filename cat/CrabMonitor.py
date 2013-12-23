@@ -80,11 +80,15 @@ class CrabMonitor(Thread):
                 print("")
                 self.dump()
 
+            log = ""
             if not self.dry_run:
                 if len(get_id) > 0:
                     if self.verbose:
                         print("Retrieving jobs...")
                     (output, returncode) = Utils.runCrab("get", ",".join(get_id), self.folder)
+                    log += "crab -get output:\n"
+                    log += "".join(output)
+                    log += "\n"
 
                     # Detect corrupted jobs
                     lines = output
@@ -104,22 +108,31 @@ class CrabMonitor(Thread):
                 if len(kill_id) > 0:
                     if self.verbose:
                         print("Killing jobs...")
-                    Utils.runCrab("kill", ",".join(kill_id), self.folder)
+                    (output, returncode) = Utils.runCrab("kill", ",".join(kill_id), self.folder)
+                    log += "crab -kill output:\n"
+                    log += "".join(output)
+                    log += "\n"
 
                 if len(resubmit_id) > 0:
                     if self.verbose:
                         print("Resubmitting jobs...")
-                    Utils.runCrab("resubmit", ",".join(resubmit_id), self.folder)
+                    (output, returncode) = Utils.runCrab("resubmit", ",".join(resubmit_id), self.folder)
+                    log += "crab -resubmit output:\n"
+                    log += "".join(output)
+                    log += "\n"
                 
                 if len(force_resubmit_id) > 0:
                     if self.verbose:
                         print("Force-resubmitting jobs...")
-                    Utils.runCrab("forceResubmit", ",".join(force_resubmit_id), self.folder)
+                    (output, returnCode) = Utils.runCrab("forceResubmit", ",".join(force_resubmit_id), self.folder)
+                    log += "crab -forceResubmit output:\n"
+                    log += "".join(output)
+                    log += "\n"
 
                 print("\nAll actions done")
                 print("")
 
-            Email.sendReport(email, self.folder, get_id, kill_id, resubmit_id, force_resubmit_id, corrupted_id, self.jobs)
+            Email.sendReport(email, self.folder, get_id, kill_id, resubmit_id, force_resubmit_id, corrupted_id, log, self.jobs)
 
             if len(resubmit_id) == 0 and n_running == 0 and n_waiting == 0:
                 break
