@@ -35,6 +35,7 @@ class CrabMonitor(Thread):
             get_id = []
             kill_id = []
             resubmit_id = []
+            force_resubmit_id = []
             corrupted_id = []
             
             n_waiting = 0
@@ -97,7 +98,8 @@ class CrabMonitor(Thread):
                         print("Some jobs are corrupted: " + ",".join(corrupted_id))
                     kill_id.extend(corrupted_id)
                     kill_id.sort()
-                    # Don't add job ids into resubmit_id because they are already inside
+                    force_resubmit_id.extend(corrupted_id)
+                    force_resubmit_id.sort()
 
                 if len(kill_id) > 0:
                     if self.verbose:
@@ -108,11 +110,16 @@ class CrabMonitor(Thread):
                     if self.verbose:
                         print("Resubmitting jobs...")
                     Utils.runCrab("resubmit", ",".join(resubmit_id), self.folder)
+                
+                if len(force_resubmit_id) > 0:
+                    if self.verbose:
+                        print("Force-resubmitting jobs...")
+                    Utils.runCrab("forceResubmit", ",".join(force_resubmit_id), self.folder)
 
                 print("\nAll actions done")
                 print("")
 
-            Email.sendReport(email, self.folder, get_id, kill_id, resubmit_id, corrupted_id, self.jobs)
+            Email.sendReport(email, self.folder, get_id, kill_id, resubmit_id, force_resubmit_id, corrupted_id, self.jobs)
 
             if len(resubmit_id) == 0 and n_running == 0 and n_waiting == 0:
                 break

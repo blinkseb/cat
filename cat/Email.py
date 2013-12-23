@@ -14,12 +14,13 @@ def send(to, msg):
     s.quit()
 
 MAIL_REGEX = re.compile("(.{76})", re.DOTALL)
-def sendReport(to, folder, get_ids, kill_ids, resubmit_ids, corrupted_ids, jobs):
+def sendReport(to, folder, get_ids, kill_ids, resubmit_ids, force_resubmit_ids, corrupted_ids, jobs):
     template = Template("""CAT has finish its duty. Here's a summary of the actions taken:
 
     $n_get jobs got: $get_id
     $n_kill jobs killed: $kill_id
     $n_resubmit jobs resubmitted: $resubmit_id
+    $n_force_resubmit jobs force-resubmitted: $force_resubmit_id
     $n_corrupted corrupted jobs: $corrupted_id
 
 $n_running jobs are still running, while $n_submitted are waiting.
@@ -38,6 +39,9 @@ CAT currently running on $host""")
 
     args["n_resubmit"] = len(resubmit_ids)
     args["resubmit_id"] = ",".join(resubmit_ids)
+
+    args["n_force_resubmit"] = len(force_resubmit_ids)
+    args["force_resubmit_id"] = ",".join(force_resubmit_ids)
 
     args["n_corrupted"] = len(corrupted_ids)
     args["corrupted_id"] = ",".join(corrupted_ids)
