@@ -160,10 +160,10 @@ class CrabMonitor(Thread):
                 break
             
             if self.verbose:
-                print("[%s] Going to sleep for 30 minutes" % strftime("%H:%M:%S", localtime()))
+                print("[%s] Going to sleep for 2 hours" % strftime("%H:%M:%S", localtime()))
 
-            # Wait for 10 minutes
-            self.exit.wait(30 * 60)
+            # Wait for 2 hours
+            self.exit.wait(2 * 60 * 60)
             if self.exit.is_set():
                 interrupted = True
                 break
