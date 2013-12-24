@@ -10,6 +10,12 @@ from threading import Thread, Event
 class Job:
     pass
 
+def chunks(l, n):
+    """ Yield successive n-sized chunks from l.
+    """
+    for i in xrange(0, len(l), n):
+        yield l[i:i+n]
+
 class CrabMonitor(Thread):
     def __init__(self, folder, verbose = False, dry_run = False):
         Thread.__init__(self, name = "Crab monitor thread")
@@ -34,6 +40,7 @@ class CrabMonitor(Thread):
 
             get_id = []
             kill_id = []
+            submit_id = []
             resubmit_id = []
             force_resubmit_id = []
             corrupted_id = []
@@ -49,6 +56,9 @@ class CrabMonitor(Thread):
 
                 if status.killable():
                     kill_id.append(str(id))
+
+                if status.submittable():
+                    submit_id.append(str(id))
 
                 if status.failed():
                     resubmit_id.append(str(id))
@@ -112,6 +122,18 @@ class CrabMonitor(Thread):
                     log += "crab -kill output:\n"
                     log += "".join(output)
                     log += "\n"
+
+                if len(submit_id) > 0:
+                    # Crab only accept a maximum of 500 jobs on submit.
+                    splitted_submit_ids = chunks(submit_id, 500)
+                    for splitted_submit_id in splitted_submit_ids:
+                        if self.verbose:
+                            print("Submitting jobs...")
+                        (output, returncode) = Utils.runCrab("submit", ",".join(splitted_submit_id), self.folder)
+                        log += "crab -submit output:\n"
+                        log += "".join(output)
+                        log += "\n"
+
 
                 if len(resubmit_id) > 0:
                     if self.verbose:

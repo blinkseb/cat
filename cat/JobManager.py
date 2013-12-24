@@ -11,6 +11,9 @@ class JobStatus:
     def gettable(self):
         return False
 
+    def submittable(self):
+        return False
+
     def success(self):
         return self.job.job_exit_code == 0 and self.job.grid_exit_code == 0
 
@@ -69,6 +72,13 @@ class CancelledStatus(JobStatus):
         return True
 
     def killable(self):
+        return True
+
+class CreatedStatus(JobStatus):
+    def __init__(self, job):
+        JobStatus.__init__(self, job)
+
+    def submittable(self):
         return True
 
 def create(job):
