@@ -32,7 +32,7 @@ def is_number(string):
         return False
 
 def delegate_proxy(verbose):
-    """Run voms-proxy-init in order to delegate a fresh new proxy valid for 14 days"""
+    """Run voms-proxy-init in order to delegate a fresh new proxy valid for 8 days"""
 
     password = Config.get().get()["grid_password"] if "grid_password" in Config.get().get() else None
 
@@ -40,7 +40,7 @@ def delegate_proxy(verbose):
         import getpass
         password = getpass.getpass("Enter your grid certificate password: ")
 
-    args = ["voms-proxy-init", "-voms", "cms", "-pwstdin", "-valid", "336:00"]
+    args = ["voms-proxy-init", "-voms", "cms", "-pwstdin", "-valid", "192:00"]
     p = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE, bufsize = -1)
 
     (stdout, stderr) = p.communicate(password + "\n")
@@ -55,11 +55,11 @@ def is_proxy_valid():
     """
     Check if the current proxy is valid
 
-    To be valid, the proxy must have at least 192 hours remaining (8 days)
+    To be valid, the proxy must have at least 170 hours remaining (7 days and 2 hours)
 
     """
 
-    args = ["voms-proxy-info", "-exists", "-valid", "192:0"]
+    args = ["voms-proxy-info", "-exists", "-valid", "170:0"]
     p = subprocess.Popen(args, stderr = subprocess.PIPE, stdout = subprocess.PIPE)
     p.communicate()
 
