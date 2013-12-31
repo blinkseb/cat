@@ -96,3 +96,12 @@ def sendProxy(to, folder):
     msg["To"] = to
 
     send(to, msg)
+
+def sendCrash(to, folder):
+    m = "CAT has crashing on host %s. Please relaunch it" % socket.gethostname()
+
+    msg = MIMEText(m)
+    msg["Subject"] = "[CAT] Crash for task %s" % folder
+    msg["To"] = to
+
+    send(to, msg)
