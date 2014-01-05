@@ -40,7 +40,7 @@ class Cat:
     def run(self):
         # Delegate a new proxy
         if not Utils.is_proxy_valid():
-            Utils.delegate_proxy(self.options.verbose)
+            Utils.delegate_proxy(self.options.verbose, False)
 
         # Create monitor thread
         self.monitor = CrabMonitor.CrabMonitor(self.crab_folder, self.options.verbose, self.options.dry_run)

@@ -31,12 +31,14 @@ def is_number(string):
     except ValueError:
         return False
 
-def delegate_proxy(verbose):
+def delegate_proxy(verbose, email = True):
     """Run voms-proxy-init in order to delegate a fresh new proxy valid for 8 days"""
 
     password = Config.get().get()["grid_password"] if "grid_password" in Config.get().get() else None
 
     if password is None:
+        if email:
+            Email.sendProxy(email, self.folder)
         import getpass
         password = getpass.getpass("Enter your grid certificate password: ")
 

@@ -34,7 +34,6 @@ class CrabMonitor(Thread):
         try:
             while True:
                 if not Utils.is_proxy_valid():
-                    Email.sendProxy(email, self.folder)
                     Utils.delegate_proxy(self.verbose)
 
                 self.status()
