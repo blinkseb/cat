@@ -232,7 +232,11 @@ class CrabMonitor(Thread):
                 job.computing_element = data[4]
             elif len(data) == 6:
                 job.job_exit_code = -1
-                job.grid_exit_code = int(data[4])
+                try:
+                    job.grid_exit_code = int(data[4])
+                except ValueError:
+                    # Crab bug: sometimes, CE is written twice
+                    job.grid_exit_code = -1
                 job.computing_element = data[5]
             else:
                 job.job_exit_code = -1
